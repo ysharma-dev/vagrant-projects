@@ -1,1 +1,3 @@
-# vagrant-projects
+# Vagrant Projects
+
+Newbie project repository to learn Vagrant
