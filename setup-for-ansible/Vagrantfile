@@ -1,0 +1,46 @@
+Vagrant.require_version ">= 2.2.17"
+
+$script = <<-SCRIPT
+echo "Installing Ansible using yum..."
+sudo yum install epel-release -y
+sudo yum install ansible -y
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.define "target01" do |target01|
+    target01.vm.box = "centos/7"
+    target01.vm.hostname = "ansible-target01"
+    target01.vm.network "private_network", type: "dhcp"
+    target01.vm.provider "virtualbox" do |vb|
+      vb.name = "ansible-target01"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+  end
+
+  config.vm.define "target02" do |target02|
+    target02.vm.box = "centos/7"
+    target02.vm.hostname = "ansible-target02"
+    target02.vm.network "private_network", type: "dhcp"
+    target02.vm.provider "virtualbox" do |vb|
+      vb.name = "ansible-target02"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+  end
+
+  config.vm.define "controller" do |controller|
+    controller.vm.box = "centos/7"
+    controller.vm.hostname = "ansible-controller"
+    controller.vm.network "private_network", type: "dhcp"
+    controller.vm.provider "virtualbox" do |vb|
+      vb.name = "ansible-controller"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    controller.vm.provision "shell", inline: $script
+    controller.vm.provision "file", source: "./.vagrant/machines/target01/virtualbox/private_key", destination:"~/.ssh/target01-key.pem"
+    controller.vm.provision "file", source: "./.vagrant/machines/target02/virtualbox/private_key", destination:"~/.ssh/target02-key.pem"
+  end
+
+end
