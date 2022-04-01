@@ -1,1 +1,32 @@
-# Install Jenkins on a VirtualBox machine
+Vagrant.require_version ">= 2.2.17"
+
+$script = <<-SCRIPT
+echo "Installing OpenJDK 11 using apt..."
+sudo apt-get update -y
+sudo apt-get install openjdk-11-jdk -y
+
+echo "Installing Jenkins using apt"
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update -y
+sudo apt-get install jenkins -y
+
+echo "Starting Jenkins Service..."
+sudo systemctl start jenkins
+echo "Initial Admin password for Jenkins will be available at /var/lib/jenkins/secrets/initialAdminPassword"
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.define "jenkins-vm" do |jenkins|
+    jenkins.vm.box = "ubuntu/focal64"
+    jenkins.vm.hostname = "jenkins-vm"
+    jenkins.vm.provider "virtualbox" do |vb|
+      vb.name = "jenkins-vm"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    jenkins.vm.network "forwarded_port", guest: 8080, host: 8080
+    jenkins.vm.provision "shell", inline: $script
+  end
+
+end
